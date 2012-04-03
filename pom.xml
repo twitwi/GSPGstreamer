@@ -19,6 +19,7 @@
         <snapshotRepository>
             <id>gh-snap-repo</id>
             <url>file:../maven-repo/snapshots</url>
+            <uniqueVersion>false</uniqueVersion>
         </snapshotRepository>
     </distributionManagement>
     <build>
