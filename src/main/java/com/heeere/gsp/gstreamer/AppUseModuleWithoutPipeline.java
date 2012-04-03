@@ -16,8 +16,9 @@ public class AppUseModuleWithoutPipeline {
 
     public static void main(String[] args) throws InterruptedException {
         ImageSource source = new ImageSource();
-        source.uri = "/home/twilight/doc/PublicationsAndPresentations/2012-04-gsp-group-meeting/smartkom_small.avi";
-        //source.uri = "/home/media/010-Zinzins_L'extraterrestre-xvid.avi";
+        //source.uri = "/home/twilight/doc/PublicationsAndPresentations/2012-04-gsp-group-meeting/smartkom_small.avi";
+        source.uri = "/home/media/010-Zinzins_L'extraterrestre-xvid.avi";
+        source.skip = 4;
         source.initSource();
 
         JFrame f = new JFrame("View With Overlay");

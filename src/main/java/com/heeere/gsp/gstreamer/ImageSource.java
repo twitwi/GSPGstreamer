@@ -30,7 +30,10 @@ public class ImageSource extends AbstractModuleEnablable {
 
     @ModuleParameter
     public String uri = null;
+    @ModuleParameter
+    public int skip = 0;
     //
+    private int currentFrame = 0;
     private PlayBin2 pipe;
     private boolean firstTime = true;
     private BlockingDeque<BufferedImage> queue = new LinkedBlockingDeque<BufferedImage>(2);
@@ -43,11 +46,14 @@ public class ImageSource extends AbstractModuleEnablable {
         pipe = new PlayBin2(name);
         pipe.setInputFile(new File(uri));
         FakeSink audio = (FakeSink) ElementFactory.make("fakesink", "audio-sink");
-        //FakeSink video = (FakeSink) ElementFactory.make("fakesink", "video-sink");
         RGBDataAppSink video = new RGBDataAppSink("rgbsink", new RGBDataAppSink.Listener() {
 
             @Override
             public void rgbFrame(int width, int height, ByteBuffer rgb) {
+                currentFrame++;
+                if (currentFrame % (skip+1) != 1) {
+                    return;
+                }
                 int widthStep = width * 4;
                 BufferedImage bi = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{0, 1, 2}, rgb);
                 try {
