@@ -35,7 +35,7 @@ public class ImageSource extends AbstractModuleEnablable {
     @ModuleParameter
     public int skipAtInit = 0;
     //
-    private int remainToSkip = 0; // to skip in the beginning
+    private int remainToSkip = 0; // to skip in the beginning     // IMPR: could use a seek here
     private int currentFrame = 0;
     private PlayBin2 pipe;
     private boolean firstTime = true;
