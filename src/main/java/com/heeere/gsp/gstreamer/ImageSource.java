@@ -32,7 +32,10 @@ public class ImageSource extends AbstractModuleEnablable {
     public String uri = null;
     @ModuleParameter
     public int skip = 0;
+    @ModuleParameter
+    public int skipAtInit = 0;
     //
+    private int remainToSkip = 0; // to skip in the beginning
     private int currentFrame = 0;
     private PlayBin2 pipe;
     private boolean firstTime = true;
@@ -41,6 +44,7 @@ public class ImageSource extends AbstractModuleEnablable {
 
     @Override
     protected void initModule() {
+        this.remainToSkip = skipAtInit;
         String name = "ImageSourceForGSP";
         Gst.init(name, new String[]{});
         pipe = new PlayBin2(name);
@@ -50,6 +54,10 @@ public class ImageSource extends AbstractModuleEnablable {
 
             @Override
             public void rgbFrame(int width, int height, ByteBuffer rgb) {
+                if (remainToSkip > 0) {
+                    remainToSkip--;
+                    return;
+                }
                 currentFrame++;
                 if (currentFrame % (skip+1) != 1) {
                     return;
