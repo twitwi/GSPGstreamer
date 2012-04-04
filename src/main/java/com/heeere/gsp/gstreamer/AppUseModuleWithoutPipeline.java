@@ -22,7 +22,7 @@ public class AppUseModuleWithoutPipeline {
             source.uri = args[0];
         }
         source.skip = 4;
-        source.skipAtInit = 25*10; // skip 10 seconds
+        source.skipAtInit = 25 * 10; // skip 10 seconds
         source.skip = source.skipAtInit = 0;
         source.initSource();
 
@@ -43,19 +43,19 @@ public class AppUseModuleWithoutPipeline {
                 break;
             }
             {
-                BufferedImage disp = source.getLastOutput(); // there is no copy here but there was already a copy in the ImageSource
-                disp = new BufferedImage(disp.getWidth(), disp.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
+                BufferedImage disp = source.getLastOutput(); // there is no copy right here but there was already a copy in the ImageSource
                 Graphics2D g = disp.createGraphics();
                 g.drawImage(source.getLastOutput(), 0, 0, null);
                 g.setColor(Color.RED);
                 g.translate(200., 100.);
-                g.rotate(i*.1);
+                g.rotate(i * .1);
                 g.scale(2., 2.);
-                g.drawString("Frame "+i, -20f, 0f);
+                g.drawString("Frame " + i, -20f, 0f);
+                g.dispose();
                 imageIcon.setImage(disp);
             }
             imageView.repaint();
-            if (i % 100 == 0) {
+            if (i % 50 == 0) {
                 System.err.println(i);
             }
             //Thread.sleep(20);

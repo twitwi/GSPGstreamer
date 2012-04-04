@@ -6,8 +6,10 @@ package com.heeere.gsp.gstreamer;
 
 import com.heeere.gsp.gstreamer.utils.RGBDataAppSink;
 import com.heeere.gsp.gstreamer.utils.ImageImport;
+import com.heeere.gsp.gstreamer.utils.ImageUtils;
 import fr.prima.gsp.framework.ModuleParameter;
 import fr.prima.gsp.framework.spi.AbstractModuleEnablable;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -58,13 +60,17 @@ public class ImageSource extends AbstractModuleEnablable {
                     remainToSkip--;
                     return;
                 }
-                if (currentFrame % (skip+1) != 0) {
+                if (currentFrame % (skip + 1) != 0) {
                     currentFrame++;
                     return;
                 }
                 currentFrame++;
                 int widthStep = width * 4;
-                BufferedImage bi = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{2, 1, 0}, rgb);
+                BufferedImage wrapper = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{2, 1, 0}, rgb);
+                BufferedImage bi =  ImageUtils.createOptimized(width, height);
+                Graphics2D g = bi.createGraphics();
+                g.drawImage(wrapper, 0, 0, null);
+                g.dispose();
                 try {
                     queue.put(bi);
                 } catch (InterruptedException ex) {
@@ -83,7 +89,7 @@ public class ImageSource extends AbstractModuleEnablable {
                 }
             }
         });
-        //video.setPassDirectBuffer(true);
+        video.setPassDirectBuffer(true);
         pipe.setAudioSink(audio);
         pipe.setVideoSink(video);
         pipe.pause();
@@ -125,7 +131,7 @@ public class ImageSource extends AbstractModuleEnablable {
     //
     private BufferedImage lastOutput; // null if no "input()" call yet or if ended
 
-    public void initSource(){
+    public void initSource() {
         initModule();
     }
 
