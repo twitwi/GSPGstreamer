@@ -64,7 +64,7 @@ public class ImageSource extends AbstractModuleEnablable {
                 }
                 currentFrame++;
                 int widthStep = width * 4;
-                BufferedImage bi = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{0, 1, 2}, rgb);
+                BufferedImage bi = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{2, 1, 0}, rgb);
                 try {
                     queue.put(bi);
                 } catch (InterruptedException ex) {
