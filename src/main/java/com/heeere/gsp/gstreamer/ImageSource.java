@@ -58,10 +58,11 @@ public class ImageSource extends AbstractModuleEnablable {
                     remainToSkip--;
                     return;
                 }
-                currentFrame++;
-                if (currentFrame % (skip+1) != 1) {
+                if (currentFrame % (skip+1) != 0) {
+                    currentFrame++;
                     return;
                 }
+                currentFrame++;
                 int widthStep = width * 4;
                 BufferedImage bi = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{0, 1, 2}, rgb);
                 try {
