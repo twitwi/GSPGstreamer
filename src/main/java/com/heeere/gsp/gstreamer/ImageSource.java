@@ -78,6 +78,17 @@ public class ImageSource extends AbstractModuleEnablable {
                 }
             }
         });
+        pipe.getBus().connect(new Bus.ERROR() {
+
+            public void errorMessage(GstObject go, int i, String message) {
+                System.err.println("GSTREAMER ERROR: " + message);
+                try {
+                    queue.put(qEnd);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
         pipe.getBus().connect(new Bus.EOS() {
 
             @Override
