@@ -23,6 +23,7 @@ import org.gstreamer.Bus;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.Gst;
 import org.gstreamer.GstObject;
+import org.gstreamer.State;
 import org.gstreamer.elements.FakeSink;
 import org.gstreamer.elements.PlayBin2;
 
@@ -105,6 +106,7 @@ public class ImageSource extends AbstractModuleEnablable {
             public void endOfStream(GstObject go) {
                 try {
                     queue.put(qEnd);
+                    pipe.stop();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -115,6 +117,21 @@ public class ImageSource extends AbstractModuleEnablable {
         pipe.setVideoSink(video);
         pipe.pause();
         pipe.getState();
+    }
+
+    @Override
+    protected void stopModule() {
+        if (pipe != null) {
+            new Thread(new Runnable() {
+
+                public void run() {
+                    pipe.stop();
+                }
+            }).start();
+            do {
+                queue.clear();
+            } while (pipe.getState(100) != State.NULL);
+        }
     }
 
     public void input() {
