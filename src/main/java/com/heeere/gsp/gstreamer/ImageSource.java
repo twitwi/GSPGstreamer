@@ -12,6 +12,8 @@ import fr.prima.gsp.framework.spi.AbstractModuleEnablable;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -50,7 +52,15 @@ public class ImageSource extends AbstractModuleEnablable {
         String name = "ImageSourceForGSP";
         Gst.init(name, new String[]{});
         pipe = new PlayBin2(name);
-        pipe.setInputFile(new File(uri));
+        if (uri.contains(":")) {
+            try {
+                pipe.setURI(new URI(uri));
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            pipe.setInputFile(new File(uri));
+        }
         FakeSink audio = (FakeSink) ElementFactory.make("fakesink", "audio-sink");
         RGBDataAppSink video = new RGBDataAppSink("rgbsink", new RGBDataAppSink.Listener() {
 
