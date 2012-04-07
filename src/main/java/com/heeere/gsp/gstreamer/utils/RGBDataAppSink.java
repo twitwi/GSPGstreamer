@@ -6,6 +6,7 @@ package com.heeere.gsp.gstreamer.utils;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import org.gstreamer.*;
 import org.gstreamer.elements.AppSink;
@@ -46,7 +47,7 @@ public class RGBDataAppSink extends Bin {
         //
         Element conv = ElementFactory.make("ffmpegcolorspace", "ColorConverter");
         Element videofilter = ElementFactory.make("capsfilter", "ColorFilter");
-        videofilter.setCaps(new Caps("video/x-raw-rgb, bpp=32, depth=24"));
+        videofilter.setCaps(new Caps("video/x-raw-rgb, bpp=24, depth=24"));
         addMany(conv, videofilter, sink);
 
         Element.linkMany(conv, videofilter, sink);
@@ -102,7 +103,7 @@ public class RGBDataAppSink extends Bin {
             if (passDirectBuffer) {
                 rgb = buffer.getByteBuffer();//.asIntBuffer();
             } else {
-                rgb = ByteBuffer.allocate(width * height * 4);//IntBuffer.allocate(width * height);
+                rgb = ByteBuffer.allocate(buffer.getSize());//IntBuffer.allocate(width * height);
                 rgb.put(buffer.getByteBuffer()).flip();//.asIntBuffer()).flip();
             }
             listener.rgbFrame(width, height, rgb);

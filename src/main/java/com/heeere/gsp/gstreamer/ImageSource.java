@@ -4,9 +4,9 @@
  */
 package com.heeere.gsp.gstreamer;
 
-import com.heeere.gsp.gstreamer.utils.RGBDataAppSink;
 import com.heeere.gsp.gstreamer.utils.ImageImport;
 import com.heeere.gsp.gstreamer.utils.ImageUtils;
+import com.heeere.gsp.gstreamer.utils.RGBDataAppSink;
 import fr.prima.gsp.framework.ModuleParameter;
 import fr.prima.gsp.framework.spi.AbstractModuleEnablable;
 import java.awt.Graphics2D;
@@ -65,9 +65,9 @@ public class ImageSource extends AbstractModuleEnablable {
                     return;
                 }
                 currentFrame++;
-                int widthStep = width * 4;
-                BufferedImage wrapper = ImageImport.createBufferedImage(width, height, widthStep, 4, new int[]{2, 1, 0}, rgb);
-                BufferedImage bi =  ImageUtils.createOptimized(width, height);
+                int widthStep = width * 3;
+                BufferedImage wrapper = ImageImport.createBufferedImage(width, height, widthStep, 3, new int[]{0, 1, 2}, rgb);
+                BufferedImage bi = ImageUtils.createOptimized(width, height);
                 Graphics2D g = bi.createGraphics();
                 g.drawImage(wrapper, 0, 0, null);
                 g.dispose();
