@@ -19,6 +19,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.bridj.Pointer;
 import org.gstreamer.Bus;
 import org.gstreamer.ElementFactory;
 import org.gstreamer.Gst;
@@ -39,13 +40,30 @@ public class ImageSource extends AbstractModuleEnablable {
     public int skip = 0;
     @ModuleParameter
     public int skipAtInit = 0;
+    @ModuleParameter
+    public boolean doRgb = false;
     //
     private int remainToSkip = 0; // to skip in the beginning     // IMPR: could use a seek here
     private int currentFrame = 0;
     private PlayBin2 pipe;
     private boolean firstTime = true;
     private BlockingDeque<BufferedImage> queue = new LinkedBlockingDeque<BufferedImage>(2);
+    private BlockingDeque<ByteBufferAndSize> rgbQueue = new LinkedBlockingDeque<ByteBufferAndSize>(3);
     private static final BufferedImage qEnd = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+
+    private static class ByteBufferAndSize {
+
+        ByteBuffer byteBuffer;
+        int width;
+        int height;
+
+        public ByteBufferAndSize(ByteBuffer byteBuffer, int width, int height) {
+            this.byteBuffer = ByteBuffer.allocateDirect(width * height * 3);
+            this.byteBuffer.put(byteBuffer);
+            this.width = width;
+            this.height = height;
+        }
+    }
 
     @Override
     protected void initModule() {
@@ -82,6 +100,13 @@ public class ImageSource extends AbstractModuleEnablable {
                 Graphics2D g = bi.createGraphics();
                 g.drawImage(wrapper, 0, 0, null);
                 g.dispose();
+                if (doRgb) {
+                    try {
+                        rgbQueue.put(new ByteBufferAndSize(rgb, width, height));
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
                 try {
                     queue.put(bi);
                 } catch (InterruptedException ex) {
@@ -130,6 +155,7 @@ public class ImageSource extends AbstractModuleEnablable {
             }).start();
             do {
                 queue.clear();
+                rgbQueue.clear();
             } while (pipe.getState(100) != State.NULL);
         }
     }
@@ -150,6 +176,10 @@ public class ImageSource extends AbstractModuleEnablable {
                 end();
                 return;
             }
+            if (doRgb) {
+                ByteBufferAndSize bbs = rgbQueue.take();
+                rgb(bbs.byteBuffer, bbs.width, bbs.height);
+            }
             output(lastOutput);
         } catch (InterruptedException ex) {
             Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
@@ -164,6 +194,11 @@ public class ImageSource extends AbstractModuleEnablable {
     private void output(BufferedImage lastOutput) {
         emitEvent(lastOutput);
     }
+    
+    private void rgb(ByteBuffer byteBuffer, int width, int height) {
+        emitEvent(byteBuffer, width, height);
+    }
+
     //
     // for non module usage
     //
