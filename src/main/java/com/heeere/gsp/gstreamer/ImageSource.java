@@ -38,6 +38,12 @@ public class ImageSource extends AbstractModuleEnablable {
     @ModuleParameter
     public boolean doRgb = false;
     @ModuleParameter
+    public int width = -1;
+    @ModuleParameter
+    public int height = -1;
+    @ModuleParameter
+    public boolean preserveAspectRatio = true;
+    @ModuleParameter
     public String cameraFileNameFormat = "/dev/video%d";
     //
     private int remainToSkip = 0; // to skip in the beginning     // IMPR: could use a seek here
@@ -73,11 +79,17 @@ public class ImageSource extends AbstractModuleEnablable {
 
     @Override
     protected void initModule() {
+        if (this.width==-1 && this.height!=-1) {
+            System.err.println("");
+            String msg = "In ImageSource, cannot specify only the height (you can specify the width or both but not just the height)";
+            System.err.println("ERROR: "+msg);
+            throw new IllegalArgumentException(msg);
+        }
         this.remainToSkip = skipAtInit;
         String name = "ImageSourceForGSP";
         Gst.init(name, new String[]{});
         FakeSink audio = (FakeSink) ElementFactory.make("fakesink", "audio-sink");
-        RGBDataAppSink video = new RGBDataAppSink("rgbsink", new RGBDataAppSink.Listener() {
+        RGBDataAppSink video = new RGBDataAppSink("rgbsink", width, height, preserveAspectRatio, new RGBDataAppSink.Listener() {
 
             @Override
             public void rgbFrame(int width, int height, ByteBuffer rgb) {

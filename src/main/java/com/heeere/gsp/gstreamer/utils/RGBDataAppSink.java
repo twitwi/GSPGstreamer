@@ -29,7 +29,7 @@ public class RGBDataAppSink extends Bin {
         void rgbFrame(int width, int height, ByteBuffer rgb);
     }
 
-    public RGBDataAppSink(String name, Listener listener) {
+    public RGBDataAppSink(String name, int widthOrMinusOne, int heightOrMinusOne, boolean preserveAspectRatio, Listener listener) {
         super(initializer(gst.ptr_gst_bin_new(name)));
         this.listener = listener;
 
@@ -41,11 +41,22 @@ public class RGBDataAppSink extends Bin {
         sink.connect(new AppSinkNewBufferListener());
 
         //
+        String supplementaryFormatCaps = "";
+        if (widthOrMinusOne != -1) {
+            supplementaryFormatCaps += ", width=" + widthOrMinusOne;
+        }
+        if (heightOrMinusOne != -1) {
+            supplementaryFormatCaps += ", height=" + heightOrMinusOne;
+        }
+        if (preserveAspectRatio) {
+            supplementaryFormatCaps += ", pixel-aspect-ratio=1/1";
+        }
+        //
         // Convert the input into 32bit RGB so it can be fed directly to a BufferedImage
         //
         Element conv = ElementFactory.make("ffmpegcolorspace", "ColorConverter");
         Element videofilter = ElementFactory.make("capsfilter", "ColorFilter");
-        videofilter.setCaps(new Caps("video/x-raw-rgb, bpp=24, depth=24")); // TODO allow for some tuning of size in the ImageSource module ", width=640, height=480"
+        videofilter.setCaps(new Caps("video/x-raw-rgb, bpp=24, depth=24" + supplementaryFormatCaps));
         addMany(conv, videofilter, sink);
 
         Element.linkMany(conv, videofilter, sink);
