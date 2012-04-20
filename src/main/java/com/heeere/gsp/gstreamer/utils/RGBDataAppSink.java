@@ -4,9 +4,7 @@
  */
 package com.heeere.gsp.gstreamer.utils;
 
-import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import org.gstreamer.*;
 import org.gstreamer.elements.AppSink;
@@ -47,7 +45,7 @@ public class RGBDataAppSink extends Bin {
         //
         Element conv = ElementFactory.make("ffmpegcolorspace", "ColorConverter");
         Element videofilter = ElementFactory.make("capsfilter", "ColorFilter");
-        videofilter.setCaps(new Caps("video/x-raw-rgb, bpp=24, depth=24"));
+        videofilter.setCaps(new Caps("video/x-raw-rgb, bpp=24, depth=24")); // TODO allow for some tuning of size in the ImageSource module ", width=640, height=480"
         addMany(conv, videofilter, sink);
 
         Element.linkMany(conv, videofilter, sink);

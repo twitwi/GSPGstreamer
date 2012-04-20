@@ -19,12 +19,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bridj.Pointer;
-import org.gstreamer.Bus;
-import org.gstreamer.ElementFactory;
-import org.gstreamer.Gst;
-import org.gstreamer.GstObject;
-import org.gstreamer.State;
+import org.gstreamer.*;
 import org.gstreamer.elements.FakeSink;
 import org.gstreamer.elements.PlayBin2;
 
@@ -42,14 +37,25 @@ public class ImageSource extends AbstractModuleEnablable {
     public int skipAtInit = 0;
     @ModuleParameter
     public boolean doRgb = false;
+    @ModuleParameter
+    public String cameraFileNameFormat = "/dev/video%d";
     //
     private int remainToSkip = 0; // to skip in the beginning     // IMPR: could use a seek here
     private int currentFrame = 0;
-    private PlayBin2 pipe;
+    private Pipeline pipe;
     private boolean firstTime = true;
     private BlockingDeque<BufferedImage> queue = new LinkedBlockingDeque<BufferedImage>(2);
     private BlockingDeque<ByteBufferAndSize> rgbQueue = new LinkedBlockingDeque<ByteBufferAndSize>(3);
     private static final BufferedImage qEnd = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+
+    private boolean isInteger(String dev) {
+        try {
+            Integer.parseInt(dev);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 
     private static class ByteBufferAndSize {
 
@@ -70,16 +76,6 @@ public class ImageSource extends AbstractModuleEnablable {
         this.remainToSkip = skipAtInit;
         String name = "ImageSourceForGSP";
         Gst.init(name, new String[]{});
-        pipe = new PlayBin2(name);
-        if (uri.contains(":")) {
-            try {
-                pipe.setURI(new URI(uri));
-            } catch (URISyntaxException ex) {
-                Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        } else {
-            pipe.setInputFile(new File(uri));
-        }
         FakeSink audio = (FakeSink) ElementFactory.make("fakesink", "audio-sink");
         RGBDataAppSink video = new RGBDataAppSink("rgbsink", new RGBDataAppSink.Listener() {
 
@@ -114,6 +110,34 @@ public class ImageSource extends AbstractModuleEnablable {
                 }
             }
         });
+        if (uri.startsWith("camera:")) {
+            String dev = uri.replaceFirst("^camera:(//)?", "");
+            if (isInteger(dev)) {
+                dev = String.format(cameraFileNameFormat, Integer.parseInt(dev));
+            }
+            pipe = new Pipeline("CameraSource");
+            //System.err.println("Trying to use a v4l2 camera '" + dev + "'");
+            Element e = ElementFactory.make("v4l2src", "V4L2SrcSource");
+            e.set("device", dev);
+            pipe.addMany(e, video);
+            pipe.linkMany(e, video);
+        } else if (uri.contains(":")) {
+            PlayBin2 p = new PlayBin2(name);
+            pipe = p;
+            try {
+                p.setURI(new URI(uri));
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            p.setAudioSink(audio);
+            p.setVideoSink(video);
+        } else {
+            PlayBin2 p = new PlayBin2(name);
+            pipe = p;
+            p.setInputFile(new File(uri));
+            p.setAudioSink(audio);
+            p.setVideoSink(video);
+        }
         pipe.getBus().connect(new Bus.ERROR() {
 
             public void errorMessage(GstObject go, int i, String message) {
@@ -138,8 +162,6 @@ public class ImageSource extends AbstractModuleEnablable {
             }
         });
         video.setPassDirectBuffer(true);
-        pipe.setAudioSink(audio);
-        pipe.setVideoSink(video);
         pipe.pause();
         pipe.getState();
     }
@@ -194,11 +216,10 @@ public class ImageSource extends AbstractModuleEnablable {
     private void output(BufferedImage lastOutput) {
         emitEvent(lastOutput);
     }
-    
+
     private void rgb(ByteBuffer byteBuffer, int width, int height) {
         emitEvent(byteBuffer, width, height);
     }
-
     //
     // for non module usage
     //
