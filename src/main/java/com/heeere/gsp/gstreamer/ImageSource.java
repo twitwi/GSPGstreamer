@@ -44,6 +44,8 @@ public class ImageSource extends AbstractModuleEnablable {
     @ModuleParameter
     public boolean preserveAspectRatio = true;
     @ModuleParameter
+    public boolean rgbInsteadOfBgr = false; // by default we output bgr images as it is the preferred thing for opencv
+    @ModuleParameter
     public String cameraFileNameFormat = "/dev/video%d";
     //
     private int remainToSkip = 0; // to skip in the beginning     // IMPR: could use a seek here
@@ -89,7 +91,7 @@ public class ImageSource extends AbstractModuleEnablable {
         String name = "ImageSourceForGSP";
         Gst.init(name, new String[]{});
         FakeSink audio = (FakeSink) ElementFactory.make("fakesink", "audio-sink");
-        RGBDataAppSink video = new RGBDataAppSink("rgbsink", width, height, preserveAspectRatio, new RGBDataAppSink.Listener() {
+        RGBDataAppSink video = new RGBDataAppSink("rgbsink", width, height, preserveAspectRatio, rgbInsteadOfBgr, new RGBDataAppSink.Listener() {
 
             @Override
             public void rgbFrame(int width, int height, ByteBuffer rgb) {
@@ -103,7 +105,7 @@ public class ImageSource extends AbstractModuleEnablable {
                 }
                 currentFrame++;
                 int widthStep = width * 3;
-                BufferedImage wrapper = ImageImport.createBufferedImage(width, height, widthStep, 3, new int[]{0, 1, 2}, rgb);
+                BufferedImage wrapper = ImageImport.createBufferedImage(width, height, widthStep, 3, new int[]{2, 1, 0}, rgb);
                 BufferedImage bi = ImageUtils.createOptimized(width, height);
                 Graphics2D g = bi.createGraphics();
                 g.drawImage(wrapper, 0, 0, null);
@@ -132,7 +134,7 @@ public class ImageSource extends AbstractModuleEnablable {
             Element e = ElementFactory.make("v4l2src", "V4L2SrcSource");
             e.set("device", dev);
             pipe.addMany(e, video);
-            pipe.linkMany(e, video);
+            Pipeline.linkMany(e, video);
         } else if (uri.contains(":")) {
             PlayBin2 p = new PlayBin2(name);
             pipe = p;

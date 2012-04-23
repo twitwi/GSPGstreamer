@@ -29,7 +29,7 @@ public class RGBDataAppSink extends Bin {
         void rgbFrame(int width, int height, ByteBuffer rgb);
     }
 
-    public RGBDataAppSink(String name, int widthOrMinusOne, int heightOrMinusOne, boolean preserveAspectRatio, Listener listener) {
+    public RGBDataAppSink(String name, int widthOrMinusOne, int heightOrMinusOne, boolean preserveAspectRatio, boolean useRGBInsteadOfBGR, Listener listener) {
         super(initializer(gst.ptr_gst_bin_new(name)));
         this.listener = listener;
 
@@ -50,6 +50,10 @@ public class RGBDataAppSink extends Bin {
         }
         if (preserveAspectRatio) {
             supplementaryFormatCaps += ", pixel-aspect-ratio=1/1";
+        }
+        if (!useRGBInsteadOfBGR) {
+            // setting to BGR
+            supplementaryFormatCaps += ", blue_mask=(int)" + 0xFF0000 + ", green_mask=(int)" + 0xFF00 + ", red_mask=(int)" + 0xFF;
         }
         //
         // Convert the input into 32bit RGB so it can be fed directly to a BufferedImage
