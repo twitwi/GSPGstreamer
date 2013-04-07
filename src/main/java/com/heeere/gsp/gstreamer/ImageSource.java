@@ -105,6 +105,7 @@ public class ImageSource extends AbstractModuleEnablable {
                 }
                 currentFrame++;
                 int widthStep = width * 3;
+                widthStep = 4 * ((widthStep+3) / 4); // gstreamer seems to align to multiple of 4
                 BufferedImage wrapper = ImageImport.createBufferedImage(width, height, widthStep, 3, new int[]{2, 1, 0}, rgb);
                 BufferedImage bi = ImageUtils.createOptimized(width, height);
                 Graphics2D g = bi.createGraphics();
