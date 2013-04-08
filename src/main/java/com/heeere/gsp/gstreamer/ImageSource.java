@@ -42,7 +42,7 @@ public class ImageSource extends AbstractModuleEnablable {
     @ModuleParameter
     public int height = -1;
     @ModuleParameter
-    public boolean preserveAspectRatio = true;
+    public boolean preserveAspectRatio = false;
     @ModuleParameter
     public boolean rgbInsteadOfBgr = false; // by default we output bgr images as it is the preferred thing for opencv
     @ModuleParameter
