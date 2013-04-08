@@ -5,7 +5,7 @@
 
     <groupId>com.heeere.gsp</groupId>
     <artifactId>gsp-gstreamer</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
     <name>GSPGstreamer</name>
     <description>Interfacing GStreamer for access by the  GSP Framework (video reading, etc.).</description>
