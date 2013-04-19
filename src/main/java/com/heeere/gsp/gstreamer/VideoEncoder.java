@@ -45,8 +45,7 @@ public class VideoEncoder extends AbstractModuleEnablable {
 
     @Override
     protected void initModule() {
-
-        Gst.init("AppSrcTest", new String[]{});
+        Gst.init("VideoEncoderModule", new String[]{});
     }
 
     private void initIfNeeded(BufferedImage image) {
@@ -56,7 +55,7 @@ public class VideoEncoder extends AbstractModuleEnablable {
         width = image.getWidth();
         height = image.getHeight();
 
-        System.err.println(width + "×" + height);
+        //System.err.println(width + "×" + height);
 
         pipeline = new Pipeline("pipeline");
         appsrc = (AppSrc) ElementFactory.make("appsrc", "source");
@@ -87,17 +86,12 @@ public class VideoEncoder extends AbstractModuleEnablable {
             byte[] data = new byte[width * height * 3];
 
             public void needData(AppSrc elem, int size) {
-                System.out.println("NEED_DATA: Element=" + elem.getNativeAddress() + " size=" + size);
-                /*
-                 Arrays.fill(data, color++);
-                 Buffer buffer = new Buffer(data.length);
-                 buffer.getByteBuffer().put(data);
-                 appsrc.pushBuffer(buffer);*/
+                //System.out.println("NEED_DATA: Element=" + elem.getNativeAddress() + " size=" + size);
             }
         });
         appsrc.connect(new AppSrc.ENOUGH_DATA() {
             public void enoughData(AppSrc elem) {
-                System.out.println("ENOUGH_DATA: Element=" + elem.getNativeAddress());
+                //System.out.println("ENOUGH_DATA: Element=" + elem.getNativeAddress());
             }
         });
 
@@ -113,11 +107,7 @@ public class VideoEncoder extends AbstractModuleEnablable {
         byte color = 0;
         byte[] data = new byte[width * height * 3];
 
-        //System.out.println("NEED_DATA: Element=" + elem.getNativeAddress() + " size=" + size);
-        //Arrays.fill(data, color++);
-        //new Random().nextBytes(data);
         Buffer buffer = new Buffer(data.length);
-        //buffer.getByteBuffer().put(data);
 
         BufferedImage bim = ImageImport.createBufferedImage(width, height, width * 3, 3, new int[]{2, 1, 0}, buffer.getByteBuffer());
         Graphics2D g = bim.createGraphics();
@@ -125,16 +115,20 @@ public class VideoEncoder extends AbstractModuleEnablable {
         g.dispose();
 
         buffer.setDuration(ClockTime.fromMicros(1000000 / fps));
-        System.err.println("PUSHING " + buffer.getSize());
+        //System.err.println("PUSHING " + buffer.getSize());
         appsrc.pushBuffer(buffer);
     }
 
     public void end() {
         appsrc.endOfStream();
+        pipeline.setState(State.NULL);
     }
 
     @Override
     protected void stopModule() {
+        // seems ok to potentially free in end and stopModule
+        appsrc.endOfStream();
+        pipeline.setState(State.NULL);
     }
 
     // non-module API

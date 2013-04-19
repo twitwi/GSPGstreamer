@@ -70,7 +70,7 @@ public class AppUseBothModulesWithoutPipeline {
                 g.drawString("Encoded " + i, -20f, 0f);
                 g.dispose();
                 imageIcon.setImage(disp);
-                System.err.println(disp.getWidth() + " " + disp.getHeight());
+                //System.err.println(disp.getWidth() + " " + disp.getHeight());
                 encoder.input(disp);
             }
             imageView.repaint();
