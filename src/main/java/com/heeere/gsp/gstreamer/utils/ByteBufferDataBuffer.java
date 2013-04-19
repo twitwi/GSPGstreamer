@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 public class ByteBufferDataBuffer extends DataBuffer {
 
     private ByteBuffer b;
+
     public ByteBufferDataBuffer(ByteBuffer b) {
         super(DataBuffer.TYPE_BYTE, b.capacity());
         this.b = b;
@@ -27,7 +28,8 @@ public class ByteBufferDataBuffer extends DataBuffer {
 
     @Override
     public void setElem(int bank, int i, int val) {
-        throw new UnsupportedOperationException("Won't write to a ByteBuffer based DataBuffer");
+        b.put(i, (byte) val);
+        //throw new UnsupportedOperationException("Won't write to a ByteBuffer based DataBuffer");
     }
 
 }
