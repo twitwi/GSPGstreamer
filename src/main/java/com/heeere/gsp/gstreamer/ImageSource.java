@@ -15,6 +15,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
@@ -73,7 +74,7 @@ public class ImageSource extends AbstractModuleEnablable {
 
         public ByteBufferAndSize(ByteBuffer byteBuffer, int width, int height) {
             this.byteBuffer = ByteBuffer.allocateDirect(width * height * 3);
-            this.byteBuffer.put(byteBuffer);
+            this.byteBuffer.put(byteBuffer.duplicate()); // put to copy the data, duplicate to avoid changing cursors in the input
             this.width = width;
             this.height = height;
         }
@@ -81,10 +82,10 @@ public class ImageSource extends AbstractModuleEnablable {
 
     @Override
     protected void initModule() {
-        if (this.width==-1 && this.height!=-1) {
+        if (this.width == -1 && this.height != -1) {
             System.err.println("");
             String msg = "In ImageSource, cannot specify only the height (you can specify the width or both but not just the height)";
-            System.err.println("ERROR: "+msg);
+            System.err.println("ERROR: " + msg);
             throw new IllegalArgumentException(msg);
         }
         this.remainToSkip = skipAtInit;
@@ -92,7 +93,6 @@ public class ImageSource extends AbstractModuleEnablable {
         Gst.init(name, new String[]{});
         FakeSink audio = (FakeSink) ElementFactory.make("fakesink", "audio-sink");
         RGBDataAppSink video = new RGBDataAppSink("rgbsink", width, height, preserveAspectRatio, rgbInsteadOfBgr, new RGBDataAppSink.Listener() {
-
             @Override
             public void rgbFrame(int width, int height, ByteBuffer rgb) {
                 if (remainToSkip > 0) {
@@ -113,7 +113,7 @@ public class ImageSource extends AbstractModuleEnablable {
                 g.dispose();
                 if (doRgb) {
                     try {
-                        rgbQueue.put(new ByteBufferAndSize(rgb, width, height));
+                        rgbQueue.put(new ByteBufferAndSize(rgb, width, height)); // this class copies the content
                     } catch (InterruptedException ex) {
                         Logger.getLogger(ImageSource.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -154,7 +154,6 @@ public class ImageSource extends AbstractModuleEnablable {
             p.setVideoSink(video);
         }
         pipe.getBus().connect(new Bus.ERROR() {
-
             public void errorMessage(GstObject go, int i, String message) {
                 System.err.println("GSTREAMER ERROR: " + message);
                 try {
@@ -165,7 +164,6 @@ public class ImageSource extends AbstractModuleEnablable {
             }
         });
         pipe.getBus().connect(new Bus.EOS() {
-
             @Override
             public void endOfStream(GstObject go) {
                 try {
@@ -185,7 +183,6 @@ public class ImageSource extends AbstractModuleEnablable {
     protected void stopModule() {
         if (pipe != null) {
             new Thread(new Runnable() {
-
                 public void run() {
                     pipe.stop();
                 }
@@ -216,6 +213,7 @@ public class ImageSource extends AbstractModuleEnablable {
             if (doRgb) {
                 ByteBufferAndSize bbs = rgbQueue.take();
                 rgb(bbs.byteBuffer, bbs.width, bbs.height);
+                // when bbs will be collected, unless somebody kept a ref to the bytebuffer, it will be collected
             }
             output(lastOutput);
         } catch (InterruptedException ex) {
